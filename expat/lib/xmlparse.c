@@ -5153,6 +5153,7 @@ doProlog(XML_Parser parser,
           *eventEndPP = s;
           parser->m_elementDeclHandler(parser->m_handlerArg, parser->m_declElementType->name, content);
           handleDefault = XML_FALSE;
+          FREE(parser, content);
         }
         dtd->in_eldecl = XML_FALSE;
       }
@@ -5228,6 +5229,7 @@ doProlog(XML_Parser parser,
               return XML_ERROR_NO_MEMORY;
             *eventEndPP = s;
             parser->m_elementDeclHandler(parser->m_handlerArg, parser->m_declElementType->name, model);
+            FREE(parser, model);
           }
           dtd->in_eldecl = XML_FALSE;
           dtd->contentStringLen = 0;
