@@ -5010,7 +5010,7 @@ doProlog(XML_Parser parser,
       if (parser->m_groupConnector[parser->m_prologState.level] == ASCII_COMMA)
         return XML_ERROR_SYNTAX;
       if (dtd->in_eldecl
-          && !parser->m_groupConnector[parser->m_prologState.level]
+          && (!parser->m_groupConnector[parser->m_prologState.level] || parser->m_groupConnector[parser->m_prologState.level]==ASCII_PIPE)
           && (dtd->scaffold[dtd->scaffIndex[dtd->scaffLevel - 1]].type
               != XML_CTYPE_MIXED)
           ) {
