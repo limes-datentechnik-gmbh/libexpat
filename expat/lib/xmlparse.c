@@ -4821,10 +4821,10 @@ doProlog(XML_Parser parser,
                                         sizeof(ENTITY));
           if (!parser->m_declEntity)
             return XML_ERROR_NO_MEMORY;
-          if (parser->m_declEntity->name != name) {
-            poolDiscard(&dtd->pool);
-            parser->m_declEntity = NULL;
-          }
+          //if (parser->m_declEntity->name != name) {
+          //  poolDiscard(&dtd->pool);
+          //  parser->m_declEntity = NULL;
+          //}
           else {
             poolFinish(&dtd->pool);
             parser->m_declEntity->publicId = NULL;
@@ -4853,10 +4853,10 @@ doProlog(XML_Parser parser,
                                            name, sizeof(ENTITY));
         if (!parser->m_declEntity)
           return XML_ERROR_NO_MEMORY;
-        if (parser->m_declEntity->name != name) {
-          poolDiscard(&dtd->pool);
-          parser->m_declEntity = NULL;
-        }
+        //if (parser->m_declEntity->name != name) {
+        //  poolDiscard(&dtd->pool);
+        //  parser->m_declEntity = NULL;
+        //}
         else {
           poolFinish(&dtd->pool);
           parser->m_declEntity->publicId = NULL;
