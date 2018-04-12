@@ -5252,6 +5252,13 @@ doProlog(XML_Parser parser,
         handleDefault = XML_FALSE;
         break;
       }
+      if ((next-s==2 && s[0]==0xD && s[1]==0xA)||(next-s==1 && s[0]==0xD)) {
+         if (parser->m_defaultHandler) {
+            XML_Char c = 0xA;
+            reportDefault(parser, enc, &c, (&c)+1);
+            handleDefault = XML_FALSE;
+         }
+      }
       break;
     case XML_ROLE_DOCTYPE_NONE:
       if (parser->m_startDoctypeDeclHandler)
