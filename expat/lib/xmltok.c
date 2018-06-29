@@ -39,7 +39,13 @@
 # define false  0
 # define true   1
 #else
+#ifdef __metal_h
+#define bool _Bool
+#define true  1
+#define false 0
+#else
 # include <stdbool.h>
+#endif
 #endif
 
 

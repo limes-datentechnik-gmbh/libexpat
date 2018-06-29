@@ -36,19 +36,24 @@
 
 #include <stddef.h>
 #include <string.h>                     /* memset(), memcpy() */
-#include <assert.h>
 #include <limits.h>                     /* UINT_MAX */
 #include <stdio.h>                      /* fprintf */
 #include <stdlib.h>                     /* getenv */
+#ifndef __metal_h // TODO: provide time() for metal build on z/OS
+#include <assert.h>
+#endif
 
 #ifdef _WIN32
 #define getpid GetCurrentProcessId
+//#include "xml_assert.h"
 #else
+#ifndef __metal_h // TODO: provide time() for metal build on z/OS
 #include <sys/time.h>                   /* gettimeofday() */
 #include <sys/types.h>                  /* getpid() */
 #include <unistd.h>                     /* getpid() */
 #include <fcntl.h>                      /* O_RDONLY */
 #include <errno.h>
+#endif
 #endif
 
 #define XML_BUILDING_EXPAT 1
@@ -67,8 +72,10 @@
 # if defined(HAVE_GETRANDOM)
 #  include <sys/random.h>    /* getrandom */
 # else
+#ifndef __metal_h
 #  include <unistd.h>        /* syscall */
 #  include <sys/syscall.h>   /* SYS_getrandom */
+#endif
 # endif
 # if ! defined(GRND_NONBLOCK)
 #  define GRND_NONBLOCK  0x0001
@@ -710,7 +717,7 @@ writeRandomBytes_getrandom_nonblock(void * target, size_t count) {
 
 
 #if ! defined(_WIN32) && defined(XML_DEV_URANDOM)
-
+#ifndef __metal_h
 /* Extract entropy from /dev/urandom */
 static int
 writeRandomBytes_dev_urandom(void * target, size_t count) {
@@ -738,7 +745,31 @@ writeRandomBytes_dev_urandom(void * target, size_t count) {
   close(fd);
   return success;
 }
-
+#else
+static int
+writeRandomBytes_dev_urandom(void * target, size_t count)
+{ /* TODO: use better seed of srand() */
+   size_t bytesWritten = 0;
+   size_t bytesToWrite = count;
+   int r, seed = (int)&count ^ (int)&target ^ (int)&bytesWritten;
+   srand(seed);
+   if (count >= sizeof(int)) {
+      do {
+         r =  rand();
+         *(int*)((char*)target + bytesWritten) = r;
+         bytesWritten += sizeof(int);
+         bytesToWrite -= sizeof(int);
+      } while (bytesToWrite >= sizeof(int));
+   }
+   if (bytesToWrite > 0) {
+      r = rand();
+      for (int i=0 ; i < bytesToWrite ; i++) {
+         *((char*)target + bytesWritten + i) = (char)((r >> (8*i)) & 0xFF);
+      }
+   }
+   return 1;
+}
+#endif
 #endif  /* ! defined(_WIN32) && defined(XML_DEV_URANDOM) */
 
 #endif  /* ! defined(HAVE_ARC4RANDOM_BUF) && ! defined(HAVE_ARC4RANDOM) */
@@ -808,6 +839,7 @@ gather_time_entropy(void)
   GetSystemTimeAsFileTime(&ft); /* never fails */
   return ft.dwHighDateTime ^ ft.dwLowDateTime;
 #else
+#ifndef __metal_h
   struct timeval tv;
   int gettimeofday_res;
 
@@ -821,12 +853,16 @@ gather_time_entropy(void)
 
   /* Microseconds time is <20 bits entropy */
   return tv.tv_usec;
+#else
+   int i;
+   return (unsigned long)&i;
+#endif
 #endif
 }
 
 #endif  /* ! defined(HAVE_ARC4RANDOM_BUF) && ! defined(HAVE_ARC4RANDOM) */
 
-
+#ifndef __metal_h
 static unsigned long
 ENTROPY_DEBUG(const char * label, unsigned long entropy) {
   const char * const EXPAT_ENTROPY_DEBUG = getenv("EXPAT_ENTROPY_DEBUG");
@@ -838,7 +874,12 @@ ENTROPY_DEBUG(const char * label, unsigned long entropy) {
   }
   return entropy;
 }
-
+#else
+static unsigned long
+ENTROPY_DEBUG(const char * label, unsigned long entropy) {
+  return entropy;
+}
+#endif
 static unsigned long
 generate_hash_secret_salt(XML_Parser parser)
 {
