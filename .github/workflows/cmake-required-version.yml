@@ -1,4 +1,3 @@
-#
 #                          __  __            _
 #                       ___\ \/ /_ __   __ _| |_
 #                      / _ \\  /| '_ \ / _` | __|
@@ -6,9 +5,7 @@
 #                      \___/_/\_\ .__/ \__,_|\__|
 #                               |_| XML parser
 #
-# Copyright (c) 2017-2022 Sebastian Pipping <sebastian@pipping.org>
-# Copyright (c) 2017      Tomasz Kłoczko <kloczek@fedoraproject.org>
-# Copyright (c) 2019      David Loffredo <loffredo@steptools.com>
+# Copyright (c) 2021-2022 Sebastian Pipping <sebastian@pipping.org>
 # Licensed under the MIT license:
 #
 # Permission is  hereby granted,  free of charge,  to any  person obtaining
@@ -30,57 +27,46 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-include_HEADERS = \
-    ../expat_config.h \
-    expat.h \
-    expat_external.h
+name: Ensure realistic minimum CMake version requirement
 
-lib_LTLIBRARIES = libexpat.la
-noinst_LTLIBRARIES = libexpatinternal.la
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: '0 2 * * 5'  # Every Friday at 2am
 
-libexpat_la_LDFLAGS = \
-    @AM_LDFLAGS@ \
-    @LIBM@ \
-    -no-undefined \
-    -version-info @LIBCURRENT@:@LIBREVISION@:@LIBAGE@
+jobs:
+  checks:
+    name: Ensure realistic minimum CMake version requirement
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3.0.2
 
-libexpat_la_SOURCES =
+    - name: Install ancient CMake
+      run: |
+        set -ux
 
-# This layer of indirection allows
-# the test suite to access internal symbols
-# despite compiling with -fvisibility=hidden
-libexpatinternal_la_SOURCES = \
-    xmlparse.c \
-    xmltok.c \
-    xmlrole.c
+        needed_cmake_version="$(sed -n 's/cmake_minimum_required(VERSION \(.*\))/\1/p' expat/CMakeLists.txt)"
 
-libexpat_la_LIBADD = libexpatinternal.la
+        installer_filename="cmake-${needed_cmake_version}-linux-x86_64.sh"
+        download_url="https://github.com/Kitware/CMake/releases/download/v${needed_cmake_version}/${installer_filename}"
+        wget --no-verbose "${download_url}"
 
-doc_DATA = \
-    ../AUTHORS \
-    ../Changes
+        chmod +x "${installer_filename}"
+        mkdir ~/.local/
 
-install-data-hook:
-	cd "$(DESTDIR)$(docdir)" && $(am__mv) Changes changelog
+        ./"${installer_filename}" --prefix="${HOME}"/.local/ --skip-license
 
-uninstall-local:
-	$(RM) "$(DESTDIR)$(docdir)/changelog"
+        hash cmake  # or the running shell will keep using the cached old location
+        present_cmake_version="$(cmake --version | sed -n 's/cmake version \(.*\)/\1/p')"
+        [[ ${present_cmake_version} = ${needed_cmake_version} ]]
 
-EXTRA_DIST = \
-    ascii.h \
-    asciitab.h \
-    expat_external.h \
-    expat.h \
-    iasciitab.h \
-    internal.h \
-    latin1tab.h \
-    libexpat.def.cmake \
-    nametab.h \
-    siphash.h \
-    utf8tab.h \
-    winconfig.h \
-    xmlrole.h \
-    xmltok.h \
-    xmltok_impl.c \
-    xmltok_impl.h \
-    xmltok_ns.c
+    - name: Build libexpat using ancient CMake
+      run: |
+        set -ux
+        mkdir expat/build
+        cd expat/build
+        cmake --version
+        cmake ..
+        make VERBOSE=1 all test install DESTDIR="${PWD}/ROOT/"
+        find ROOT/ -not -type d | sort
