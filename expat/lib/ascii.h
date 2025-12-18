@@ -102,8 +102,12 @@
 #define ASCII_SPACE 0x20
 #define ASCII_EXCL 0x21
 #define ASCII_QUOT 0x22
+#define ASCII_DOLLAR 0x24
+#define ASCII_PERCENT 0x25
 #define ASCII_AMP 0x26
 #define ASCII_APOS 0x27
+#define ASCII_MUL 0x2A
+#define ASCII_PLUS 0x2B
 #define ASCII_MINUS 0x2D
 #define ASCII_PERIOD 0x2E
 #define ASCII_COLON 0x3A
@@ -111,7 +115,10 @@
 #define ASCII_LT 0x3C
 #define ASCII_EQUALS 0x3D
 #define ASCII_GT 0x3E
+#define ASCII_QM 0x3F
+#define ASCII_AT 0x40
 #define ASCII_LSQB 0x5B
+#define ASCII_BS 0x5C
 #define ASCII_RSQB 0x5D
 #define ASCII_UNDERSCORE 0x5F
 #define ASCII_LPAREN 0x28
@@ -120,4 +127,5 @@
 #define ASCII_SLASH 0x2F
 #define ASCII_HASH 0x23
 #define ASCII_PIPE 0x7C
+#define ASCII_TILDE 0x7E
 #define ASCII_COMMA 0x2C
