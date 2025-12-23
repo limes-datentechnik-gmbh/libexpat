@@ -6108,7 +6108,7 @@ doProlog(XML_Parser parser, const ENCODING *enc, const char *s, const char *end,
           parser->m_elementDeclHandler(
               parser->m_handlerArg, parser->m_declElementType->name, content);
           handleDefault = XML_FALSE;
-          FREE(parser, content);
+          parser->m_mem.free_fcn(content);
         }
         dtd->in_eldecl = XML_FALSE;
       }
@@ -6191,7 +6191,7 @@ doProlog(XML_Parser parser, const ENCODING *enc, const char *s, const char *end,
             *eventEndPP = s;
             parser->m_elementDeclHandler(
                 parser->m_handlerArg, parser->m_declElementType->name, model);
-            FREE(parser, model);
+            parser->m_mem.free_fcn(model);
           }
           dtd->in_eldecl = XML_FALSE;
           dtd->contentStringLen = 0;
