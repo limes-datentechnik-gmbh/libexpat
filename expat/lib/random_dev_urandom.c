@@ -43,6 +43,12 @@
 #include <fcntl.h>  // open
 #include <unistd.h> // close
 
+#if defined(__ZOS__) || defined(__USS__)
+#ifndef O_CLOEXEC
+/* needed to compile on host with -qtarget=zosv2r2 */
+#define O_CLOEXEC 0
+#endif
+#endif
 /* Extract entropy from /dev/urandom */
 bool
 writeRandomBytes_dev_urandom(void *target, size_t count) {
